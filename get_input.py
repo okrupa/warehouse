@@ -49,5 +49,8 @@ def main():
     containers = get_containers()
     print("Given containers measurements hxwxd:")
     for i, container in enumerate(containers):
-        print(f"{i+1}- {container[0]}x{container[1]}x{container[2]}")
+        print(f"{i+1}- {container[0]}x{container[1]}x{container[2]}") 
+
+    print(storehouse)
+    print(containers)
 main()
