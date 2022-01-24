@@ -10,16 +10,24 @@ class Tensor:
         self.position = position
         self.order = order
 
-    def isOverlapping(self, otherContainer):
+    def calculateOverlapping(self, otherContainer):
+        overlappingDim = []
         for i in range(self.order):
             minPosition = min(self.position[i], otherContainer.position[i])
             if minPosition == self.position[i]:
                 if self.position[i] + self.dimensions[i] <= otherContainer.position[i]:
-                    return False
-            if minPosition == otherContainer.position[i]:
+                    overlappingDim.append(0)
+                else:
+                    overlappingDim.append(self.position[i] + self.dimensions[i] - otherContainer.position[i])
+            elif minPosition == otherContainer.position[i]:
                 if otherContainer.position[i] + otherContainer.dimensions[i] <= self.position[i]:
-                    return False
-        return True
+                    overlappingDim.append(0)
+                else:
+                    overlappingDim.append(otherContainer.position[i] + otherContainer.dimensions[i] - self.position[i])
+        overlapping = 1
+        for o in overlappingDim:
+            overlapping *= o
+        return overlapping
         
 
 def getBounds(storehouse):
@@ -40,7 +48,7 @@ def obj(individual):
     error = 0
     for i in range(len(individual)):
         for j in range(i+1, len(individual)):
-            error += individual[i].isOverlapping(individual[j])
+            error += individual[i].calculateOverlapping(individual[j])
     return error
 
 
@@ -75,6 +83,7 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, containe
     population = getPopulation(containers, bounds, population_size)
     # Evaluate initial population
     obj_all = [obj(individual) for individual in population]
+    print(obj_all)
     # Find the best individual and best obj 
     best_individual = population[argmin(obj_all)]
     best_obj = min(obj_all)
@@ -101,6 +110,7 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, containe
         obj_all = [obj(individual) for individual in population]
         best_individual = population[argmin(obj_all)]
         best_obj = min(obj_all)
+        print(obj_all)
         print(f'Iteration: {i}: {best_obj}')
         i += 1
     
@@ -111,7 +121,7 @@ storehouse = [2, 5, 3]
 containers = [[2, 1, 3], [1,1,1], [1,1,1], [1,1,2],[1,2,2], [2,3,1], [2,1,2], [3,1,1]]
 
 POPULATION_SIZE = 15
-ITER_NUMBER = 100
+ITER_NUMBER = 1000
 F = 0.5
 CR = 0.7
 
