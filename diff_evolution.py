@@ -32,20 +32,20 @@ class Tensor:
         return V - overlapping
 
     def permutateDimensions(self):
-        self.dimensions[0], self.dimensions[1], self.dimensions[2] = self.dimensions[1], self.dimensions[2], self.dimensions[0]
-        return
+        rot_idx = random.sample([i for i in range(self.order)], 2)
+        self.dimensions[rot_idx[0]], self.dimensions[rot_idx[1]] = self.dimensions[rot_idx[1]], self.dimensions[rot_idx[0]]
         
 
-def getBounds(storehouse):
-    return asarray([(0, storehouse[i] - 1) for i in range(3)])
+def getBounds(storehouse, ORDER):
+    return asarray([(0, storehouse[i] - 1) for i in range(ORDER)])
 
 
-def getPopulation(containers, bounds, population_size):
+def getPopulation(containers, bounds, population_size, ORDER):
     pop = []
     for _ in range(population_size):
         individual = []
         for container in containers:
-            position = [random.randint(bounds[i][0], bounds[i][1]) for i in range(3)]
+            position = [random.randint(bounds[i][0], bounds[i][1]) for i in range(ORDER)]
             individual.append(Tensor(container, position, 3))
         pop.append(individual)
     return pop
@@ -59,32 +59,32 @@ def obj(individual, storehouse):
     return error
 
 
-def mutate(candidates, individual, F, p):
+def mutate(candidates, individual, F, P, ORDER):
     mutated_individual = []
     for i in range(len(candidates[0])):
         mutated_position = []
-        for j in range(3):
+        for j in range(ORDER):
             mutated_dim = candidates[0][i].position[j] + F * (candidates[1][i].position[j] - candidates[2][i].position[j])
             mutated_position.append(mutated_dim)
         mutated_tensor = Tensor(individual[i].dimensions, mutated_position, 3)
         mutated_individual.append(mutated_tensor)
 
         # Mutate dimensions permutation
-        if random.random() < p:
+        if random.random() < P:
             mutated_tensor.permutateDimensions()
 
     return mutated_individual
 
 
-def roundPosition(individual):
+def roundPosition(individual, ORDER):
     for tensor in individual:
-        for i in range(3):
+        for i in range(ORDER):
             tensor.position[i] = round(tensor.position[i])
 
 
-def normalizeBounds(individual, bounds):
+def normalizeBounds(individual, bounds, ORDER):
     for tensor in individual:
-        for i in range(3):
+        for i in range(ORDER):
             if tensor.position[i] < min(bounds[i]):
                 tensor.position[i] = min(bounds[i])
             if tensor.position[i] > max(bounds[i]):
@@ -98,14 +98,12 @@ def crossover(mutated_individual, individual, CR):
     return crossover_individual
 
 
-def differential_evolution(population_size, bounds, iter_number, F, CR, p, containers, storehouse):
+def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER, containers, storehouse):
     storehouse = Tensor(storehouse, [0, 0, 0], 3)
     # Initialise population
-    population = getPopulation(containers, bounds, population_size)
+    population = getPopulation(containers, bounds, population_size, ORDER)
     # Evaluate initial population
     obj_all = [obj(individual, storehouse) for individual in population]
-    print(obj_all)
-    # Find the best individual and best obj 
     best_individual = population[argmin(obj_all)]
     best_obj = min(obj_all)
 
@@ -114,11 +112,11 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, p, conta
         for j, individual in enumerate(population):
             # Choose 3 candidates
             candidates = [candidate for candidate in population if candidate != individual]
-            a, b, c = random.sample(candidates, 3)
+            candidates = random.sample(candidates, 3)
             # Mutation
-            mutated_individual = mutate([a, b, c], individual, F, p)
-            roundPosition(mutated_individual)
-            normalizeBounds(mutated_individual, bounds)
+            mutated_individual = mutate(candidates, individual, F, P, ORDER)
+            roundPosition(mutated_individual, ORDER)
+            normalizeBounds(mutated_individual, bounds, ORDER)
             # Crossover
             crossover_individual = crossover(mutated_individual, individual, CR)
             # Evaluate individual
@@ -127,32 +125,33 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, p, conta
             obj_temp_individual = obj(crossover_individual, storehouse)
             # Selection
             if obj_temp_individual < obj_individual:
-                #population[j] = mutated_individual
                 population[j] = crossover_individual
         # Evaluate population
         obj_all = [obj(individual, storehouse) for individual in population]
         best_individual = population[argmin(obj_all)]
         best_obj = min(obj_all)
-        print(obj_all)
-        print(f'Iteration: {i}: {best_obj}')
         i += 1
     
     return best_individual, best_obj == 0
 
 
-storehouse = [2, 5, 3]
-containers = [[2, 1, 3], [1,1,1], [1,1,1], [1,1,2],[1,2,2], [3,1,1]]
+def main():
+    storehouse = [10, 5, 2]
+    containers = [[2, 1, 10], [1, 1, 10], [1, 1, 10], [1, 1, 10]]
 
-POPULATION_SIZE = 15
-ITER_NUMBER = 1000
-F = 0.5
-CR = 0.7
-p = 0.2
+    POPULATION_SIZE = 150
+    ITER_NUMBER = 1000
+    F = 0.5
+    CR = 0.7
+    P = 0.5
+    ORDER = 3
 
-bounds = getBounds(storehouse)
-differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, p, containers, storehouse)
+    bounds = getBounds(storehouse, ORDER)
+    solution, cond = differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containers, storehouse)
 
-storehouseT = Tensor([2, 5, 3], [0, 0, 0], 3)
-container = Tensor([1, 1, 1], [0, 2, 1], 3)
-#print(container.calculateOutsticking(storehouseT))
-#print(storehouseT.calculateOutsticking(container))
+    print(cond)
+    for tensor in solution:
+        print(f'{tensor.position}   {tensor.dimensions}')
+
+if __name__ == "__main__":
+    main()
