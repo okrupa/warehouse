@@ -155,6 +155,7 @@ def main():
     print(cond)
     for tensor in solution:
         print(f'{tensor.position}   {tensor.dimensions}')
+        
 
     ax = plt.figure().add_subplot(projection='3d')
     for tensor in solution:

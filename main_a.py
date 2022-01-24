@@ -2,6 +2,11 @@ import random
 
 import diff_evolution as DE
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+from diff_evolution import Tensor
+
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -20,7 +25,7 @@ def runDE(containers_list, containers, storehouse):
             containersToOrder.append(containers[i])
     
     POPULATION_SIZE = 25
-    ITER_NUMBER = 100
+    ITER_NUMBER = 50
     F = 0.5
     CR = 0.7
     P = 0.5
@@ -30,6 +35,23 @@ def runDE(containers_list, containers, storehouse):
     solution, cond = DE.differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containersToOrder, storehouse)
 
     return cond
+
+
+def runHeuristics(containers_list, containers, storehouse):
+    storehouse_volume = storehouse[0]*storehouse[1]*storehouse[2]
+    actual_volume = 0
+    c_volume = []
+    for i in containers:
+        c_volume.append(i[0]*i[1]*i[2])
+
+    for i in range(len(containers_list)):
+        if containers_list[i] == 1:
+            con_vol = c_volume[i]
+            actual_volume += con_vol
+    if storehouse_volume < actual_volume:
+        return False
+    return True
+
 
 def get_neighbours(containers_list):
     # obliczenie sąsiadów dla punktu
@@ -91,7 +113,7 @@ def h(containers_list, containers, storehouse):
     return num_containers
 
 
-def astar( start, end,  containers, storehouse):
+def astar( start, end,  containers, storehouse, f_limits):
 
     first_node = Node( start)
     all_c_node = Node( end)
@@ -143,7 +165,7 @@ def astar( start, end,  containers, storehouse):
 
                 
                 # Child cannot exist - put DE algorithm
-                possible_arrangement = runDE(neighbour.position, containers, storehouse)
+                possible_arrangement = f_limits(neighbour.position, containers, storehouse)
                 if not possible_arrangement:
                     neighbour.position[neighbour_with_index[1]] = 0
                     neighbour.g = g(neighbour.position)
@@ -186,14 +208,14 @@ def get_list_end(containers):
 
 def main():
 
-    storehouse = [2, 5, 3]
+    storehouse = [5, 5, 5]
     # storehouse = [10,10,10]
-    containers = [[2, 4, 3], [7, 4, 5], [2, 1, 3], [1,1,1], [1,1,1], [1,1,2],[1,2,2], [2,3,1], [2,2,2], [2,1,2], [3,1,1]]
+    containers = [[2, 4, 3], [7, 4, 5], [2, 1, 3], [1, 1, 1]]
     
     start = get_list(containers)
     end = get_list_end(containers)
 
-    path = astar( start, end, containers, storehouse)
+    path = astar( start, end, containers, storehouse, runHeuristics)
     print(path)
 
     c_volume = []
@@ -201,6 +223,48 @@ def main():
         c_volume.append(i[0]*i[1]*i[2])
     print(c_volume)
 
+    containersToShow = []
+    for i, symbol in enumerate(path):
+        if symbol == 1:
+            containersToShow.append(containers[i])
+
+    POPULATION_SIZE = 50
+    ITER_NUMBER = 200
+    F = 0.5
+    CR = 0.7
+    P = 0.5
+    ORDER = 3
+    
+    bounds = DE.getBounds(storehouse, ORDER)
+    solution, cond = DE.differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containersToShow, storehouse)
+
+    if cond:
+        ax = plt.figure().add_subplot(projection='3d')
+        for tensor in solution:
+            filled = np.zeros((5, 5, 5))
+            for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
+                for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
+                    for z in range(tensor.position[2], tensor.position[2] + tensor.dimensions[2]):
+                        filled[x][y][z] = True
+            ax.voxels(filled)
+        plt.show()
+    else:
+        for i in range(len(solution)):
+            temp_solution = solution.copy()
+            temp_solution.remove(solution[i])
+            containersToShow = [ind.dimensions for ind in temp_solution]
+            new_solution, cond = DE.differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containersToShow, storehouse)
+            if cond:
+                ax = plt.figure().add_subplot(projection='3d')
+                for tensor in new_solution:
+                    filled = np.zeros((5, 5, 5))
+                    for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
+                        for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
+                            for z in range(tensor.position[2], tensor.position[2] + tensor.dimensions[2]):
+                                filled[x][y][z] = True
+                    ax.voxels(filled)
+                plt.show()
+                break
 
 if __name__ == '__main__':
     main()
