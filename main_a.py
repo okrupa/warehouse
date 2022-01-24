@@ -1,5 +1,7 @@
 import random
 
+import diff_evolution as DE
+
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -11,23 +13,23 @@ class Node():
         self.f = 0
 
 
-def astarforpositions(containers_list, containers, storehouse):
-    #Algorytm A* czy dany kontener możemy umieścić w magazynie - TODOO
-    #Na ten czas zastąpiony - czy nie przekroczymy pojemności magazynu
-    storehouse_volume = storehouse[0]*storehouse[1]*storehouse[2]
-    actual_volume = 0
-    c_volume = []
-    for i in containers:
-        c_volume.append(i[0]*i[1]*i[2])
+def runDE(containers_list, containers, storehouse):
+    containersToOrder = []
+    for i, symbol in enumerate(containers_list):
+        if symbol == 1:
+            containersToOrder.append(containers[i])
+    
+    POPULATION_SIZE = 25
+    ITER_NUMBER = 100
+    F = 0.5
+    CR = 0.7
+    P = 0.5
+    ORDER = 3
+    
+    bounds = DE.getBounds(storehouse, ORDER)
+    solution, cond = DE.differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containersToOrder, storehouse)
 
-    for i in range(len(containers_list)):
-        if containers_list[i] == 1:
-            con_vol = c_volume[i]
-            actual_volume += con_vol
-    if storehouse_volume < actual_volume:
-        return False
-    return True
-
+    return cond
 
 def get_neighbours(containers_list):
     # obliczenie sąsiadów dla punktu
@@ -99,8 +101,10 @@ def astar( start, end,  containers, storehouse):
 
     open_list.append(first_node)
 
+    i = 0
     while len(open_list) > 0:
-
+        print(i)
+        i += 1
         current_node = open_list[0]
         current_index = 0
         for index, item in enumerate(open_list):
@@ -138,8 +142,8 @@ def astar( start, end,  containers, storehouse):
                 neighbour.f = neighbour.g + neighbour.h
 
                 
-                # Child cannot exist - put another a* algorithm
-                possible_arrangement = astarforpositions(neighbour.position, containers, storehouse)
+                # Child cannot exist - put DE algorithm
+                possible_arrangement = runDE(neighbour.position, containers, storehouse)
                 if not possible_arrangement:
                     neighbour.position[neighbour_with_index[1]] = 0
                     neighbour.g = g(neighbour.position)

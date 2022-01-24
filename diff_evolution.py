@@ -2,7 +2,10 @@ from matplotlib.container import Container
 from numpy import asarray
 import random
 from numpy import argmin
-from numpy.random import choice
+
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Tensor:
@@ -136,8 +139,8 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER
 
 
 def main():
-    storehouse = [10, 5, 2]
-    containers = [[2, 1, 10], [1, 1, 10], [1, 1, 10], [1, 1, 10]]
+    storehouse = [2, 5, 3]
+    containers = [[1,1,1], [1,1,1], [1,1,2],[1,2,2], [2,3,1], [2,2,2], [2,1,2]]
 
     POPULATION_SIZE = 150
     ITER_NUMBER = 1000
@@ -152,6 +155,18 @@ def main():
     print(cond)
     for tensor in solution:
         print(f'{tensor.position}   {tensor.dimensions}')
+
+    ax = plt.figure().add_subplot(projection='3d')
+    for tensor in solution:
+        filled = np.zeros((2, 5, 3))
+        for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
+            for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
+                for z in range(tensor.position[2], tensor.position[2] + tensor.dimensions[2]):
+                    filled[x][y][z] = True
+        ax.voxels(filled)
+    
+    
+    plt.show()
 
 if __name__ == "__main__":
     main()
