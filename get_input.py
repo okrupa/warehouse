@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 from ordering_functions import orderContainers
 
@@ -62,11 +63,9 @@ def visualize(arrangement, storehouse):
 
 
 def main():
-    #storehouse = get_storehouse()
-    storehouse = [3, 4, 10]
+    storehouse = get_storehouse()
     print(f"Storehouse measurements hxwxd = {storehouse[0]}x{storehouse[1]}x{storehouse[2]}\n")
-    #containers = get_containers()
-    containers = [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [3, 3, 1], [1, 1, 1], [1, 1, 1]]
+    containers = get_containers()
     print("Given containers measurements hxwxd:")
     for i, container in enumerate(containers):
         print(f"{i+1}- {container[0]}x{container[1]}x{container[2]}") 
