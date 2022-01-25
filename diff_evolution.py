@@ -60,11 +60,13 @@ def getPopulation(containers, bounds, population_size, ORDER):
 
 def obj(individual, storehouse):
     error = 0
+    # Calculate error because of overlapping
     for i in range(len(individual)):
         for j in range(i+1, len(individual)):
             error += individual[i].calculateOverlapping(individual[j])
         error += individual[i].calculateOutsticking(storehouse)
 
+    # Calculate error because of levitating
     for i, tensor in enumerate(individual):
         for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
             for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):

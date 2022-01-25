@@ -83,7 +83,7 @@ def unplace(mag_points, container, coords):
             for k in range(coords[2],coords[2]+container[2]):
                 mag_points[i,j,k] = -1
 mag_size = [5, 5, 5]
-packages = [[3, 3, 3], [2,2,2], [3,3,3], [2, 2, 2]]
+packages = [[5, 5, 5], [4, 4, 4], [3, 3, 3], [2,2,2], [1, 1, 1]]
 output = bruteforce(mag_size, packages)
 print(output)
 print(packages)
