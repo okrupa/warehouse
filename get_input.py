@@ -63,10 +63,10 @@ def visualize(arrangement, storehouse):
 
 def main():
     #storehouse = get_storehouse()
-    storehouse = [4, 4, 4]
+    storehouse = [3, 4, 10]
     print(f"Storehouse measurements hxwxd = {storehouse[0]}x{storehouse[1]}x{storehouse[2]}\n")
     #containers = get_containers()
-    containers = [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [3, 3, 1], [3, 3, 1], [3, 3, 1]]
+    containers = [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [3, 3, 1], [1, 1, 1], [1, 1, 1]]
     print("Given containers measurements hxwxd:")
     for i, container in enumerate(containers):
         print(f"{i+1}- {container[0]}x{container[1]}x{container[2]}") 

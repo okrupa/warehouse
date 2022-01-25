@@ -1,3 +1,4 @@
+import copy
 from numpy import asarray
 import random
 from numpy import argmin
@@ -25,7 +26,6 @@ class Tensor:
             overlapping *= o
         return overlapping
     
-
     def calculateOutsticking(self, otherContainer):
         overlapping = self.calculateOverlapping(otherContainer)
         V = 1
@@ -36,7 +36,13 @@ class Tensor:
     def permutateDimensions(self):
         rot_idx = random.sample([i for i in range(self.order)], 2)
         self.dimensions[rot_idx[0]], self.dimensions[rot_idx[1]] = self.dimensions[rot_idx[1]], self.dimensions[rot_idx[0]]
-        
+
+    def doesContain(self, point):
+        for i, p in enumerate(point):
+            if not (self.position[i] <= p and p < self.position[i] + self.dimensions[i]):
+                return False
+        return True
+
 
 def getBounds(storehouse, ORDER):
     return asarray([(0, storehouse[i] - 1) for i in range(ORDER)])
@@ -58,6 +64,20 @@ def obj(individual, storehouse):
         for j in range(i+1, len(individual)):
             error += individual[i].calculateOverlapping(individual[j])
         error += individual[i].calculateOutsticking(storehouse)
+
+    for i, tensor in enumerate(individual):
+        for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
+            for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
+                z = tensor.position[2] - 1
+                hasSupport = False
+                while z >= 0 and not hasSupport:
+                    for otherTensor in individual:
+                        if otherTensor.doesContain([x, y, z]):
+                            hasSupport = True
+                    if not hasSupport:
+                        error += 1
+                    z -= 1
+
     return error
 
 
@@ -68,7 +88,7 @@ def mutate(candidates, individual, F, P, ORDER):
         for j in range(ORDER):
             mutated_dim = candidates[0][i].position[j] + F * (candidates[1][i].position[j] - candidates[2][i].position[j])
             mutated_position.append(mutated_dim)
-        mutated_tensor = Tensor(individual[i].dimensions, mutated_position, 3)
+        mutated_tensor = Tensor(individual[i].dimensions, mutated_position, ORDER)
         mutated_individual.append(mutated_tensor)
 
         # Mutate dimensions permutation
@@ -134,39 +154,13 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER
         best_obj = min(obj_all)
         i += 1
     
-    return best_individual, best_obj == 0
+    return best_individual, isArrangementCorrect(best_individual, storehouse)
 
 
-def main():
-    storehouse = [2, 5, 3]
-    containers = [[1,1,1], [1,1,1], [1,1,2],[1,2,2], [2,3,1], [2,2,2], [2,1,2]]
-
-    POPULATION_SIZE = 150
-    ITER_NUMBER = 1000
-    F = 0.5
-    CR = 0.7
-    P = 0.5
-    ORDER = 3
-
-    bounds = getBounds(storehouse, ORDER)
-    solution, cond = differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containers, storehouse)
-
-    print(cond)
-    for tensor in solution:
-        print(f'{tensor.position}   {tensor.dimensions}')
-        
-
-    ax = plt.figure().add_subplot(projection='3d')
-    for tensor in solution:
-        filled = np.zeros((2, 5, 3))
-        for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
-            for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
-                for z in range(tensor.position[2], tensor.position[2] + tensor.dimensions[2]):
-                    filled[x][y][z] = True
-        ax.voxels(filled)
-    
-    
-    plt.show()
-
-if __name__ == "__main__":
-    main()
+def isArrangementCorrect(individual, storehouse):
+    error = 0
+    for i in range(len(individual)):
+        for j in range(i+1, len(individual)):
+            error += individual[i].calculateOverlapping(individual[j])
+        error += individual[i].calculateOutsticking(storehouse)
+    return error == 0
