@@ -1,4 +1,3 @@
-from matplotlib.container import Container
 from numpy import asarray
 import random
 from numpy import argmin

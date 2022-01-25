@@ -1,3 +1,9 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ordering_functions import orderContainers
+
+
 def get_storehouse():
     while True:
         print("Enter storehouse measurements:")
@@ -41,16 +47,34 @@ def get_containers():
             return containers
         else:
             print("Please enter correct answer\n")
-        
+
+
+def visualize(arrangement, storehouse):
+    ax = plt.figure().add_subplot(projection='3d')
+    for tensor in arrangement:
+        filled = np.zeros(storehouse)
+        for x in range(tensor.position[0], tensor.position[0] + tensor.dimensions[0]):
+            for y in range(tensor.position[1], tensor.position[1] + tensor.dimensions[1]):
+                for z in range(tensor.position[2], tensor.position[2] + tensor.dimensions[2]):
+                    filled[x][y][z] = True
+        ax.voxels(filled)
+    plt.show()
+
 
 def main():
-    storehouse = get_storehouse()
+    #storehouse = get_storehouse()
+    storehouse = [4, 4, 4]
     print(f"Storehouse measurements hxwxd = {storehouse[0]}x{storehouse[1]}x{storehouse[2]}\n")
-    containers = get_containers()
+    #containers = get_containers()
+    containers = [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [3, 3, 1], [3, 3, 1], [3, 3, 1]]
     print("Given containers measurements hxwxd:")
     for i, container in enumerate(containers):
         print(f"{i+1}- {container[0]}x{container[1]}x{container[2]}") 
 
     print(storehouse)
     print(containers)
+
+    arrangement = orderContainers(containers, storehouse)
+
+    visualize(arrangement, storehouse)
 main()
