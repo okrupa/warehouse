@@ -18,8 +18,8 @@ def visualize(arrangement, storehouse):
 
 def main():
     random.seed(10)
-    storehouse = [3, 4, 10]
-    containers = [[2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [2, 2, 2], [3, 3, 1], [1, 1, 1], [1, 1, 1]]
+    storehouse = [5, 5, 5]
+    containers = [[6, 6, 6]]
 
     arrangement = orderContainers(containers, storehouse)
 

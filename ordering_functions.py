@@ -31,8 +31,12 @@ def orderContainers(containers, storehouse):
                     max_volume = node.g
                     max_volume_node = node
 
-        print("Start: DE")
-        possibleArrangement, foundCorrectArrangement = runDE(max_volume_node.position, containers, storehouse)
+        try:
+            print("Start: DE")
+            possibleArrangement, foundCorrectArrangement = runDE(max_volume_node.position, containers, storehouse)
+        except UnboundLocalError as e:
+            print("Nie jest możliwe poprawne rozmieszczenie")
+            exit(0)
         print("Finish iteration: DE")
         if not foundCorrectArrangement:
             nodes.remove(max_volume_node)
