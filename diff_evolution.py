@@ -112,10 +112,14 @@ def normalizeBounds(individual, bounds, ORDER):
             if tensor.position[i] > max(bounds[i]):
                 tensor.position[i] = max(bounds[i])
 
-def crossover(mutated_individual, individual, CR):
+def crossover(mutated_individual, individual, CR, ORDER):
     crossover_individual = []
     for mutated_tensor, tensor in zip(mutated_individual, individual):
-        crossover_tensor = mutated_tensor if random.random() < CR else tensor
+        crossover_position = []
+        for i in range(ORDER):
+            crossover_position_dim = mutated_tensor.position[i] if random.random() < CR else tensor.position[i]
+            crossover_position.append(crossover_position_dim)
+        crossover_tensor = Tensor(mutated_tensor.dimensions, crossover_position, ORDER)
         crossover_individual.append(crossover_tensor)
     return crossover_individual
 
@@ -140,7 +144,7 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER
             roundPosition(mutated_individual, ORDER)
             normalizeBounds(mutated_individual, bounds, ORDER)
             # Crossover
-            crossover_individual = crossover(mutated_individual, individual, CR)
+            crossover_individual = crossover(mutated_individual, individual, CR, ORDER)
             # Evaluate individual
             obj_individual = obj(individual, storehouse)
             #obj_temp_individual = obj(mutated_individual, storehouse)
@@ -154,13 +158,4 @@ def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER
         best_obj = min(obj_all)
         i += 1
     
-    return best_individual, isArrangementCorrect(best_individual, storehouse)
-
-
-def isArrangementCorrect(individual, storehouse):
-    error = 0
-    for i in range(len(individual)):
-        for j in range(i+1, len(individual)):
-            error += individual[i].calculateOverlapping(individual[j])
-        error += individual[i].calculateOutsticking(storehouse)
-    return error == 0
+    return best_individual, best_obj == 0

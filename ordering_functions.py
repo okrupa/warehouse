@@ -36,7 +36,6 @@ def orderContainers(containers, storehouse):
         print("Finish iteration: DE")
         if not foundCorrectArrangement:
             nodes.remove(max_volume_node)
-    #return pullDown(possibleArrangement, storehouse)
     return possibleArrangement
 
 
@@ -57,27 +56,3 @@ def runDE(containers_list, containers, storehouse):
     solution, cond = DE.differential_evolution(POPULATION_SIZE, bounds, ITER_NUMBER, F, CR, P, ORDER, containersToOrder, storehouse)
 
     return solution, cond
-
-
-def pullDown(arrangement, storehouse):
-    storehouseTensor = Tensor(storehouse, [0, 0, 0], 3)
-    newArrangement = copy.deepcopy(arrangement)
-
-    changedPosition = True
-    while changedPosition:
-        changedPosition = False
-        for i, tensor in enumerate(newArrangement):
-            temp_tensor = copy.deepcopy(tensor)
-            overlapping = 0
-            outsticking = 0
-            while overlapping == 0 and outsticking == 0:
-                temp_tensor.position[2] = temp_tensor.position[2] - 1
-                for otherTensor in newArrangement:
-                    if otherTensor != tensor:
-                        overlapping += temp_tensor.calculateOverlapping(otherTensor)
-                outsticking += temp_tensor.calculateOutsticking(storehouseTensor)
-            temp_tensor.position[2] = temp_tensor.position[2] + 1
-            if temp_tensor.position[2] != tensor.position[2]:
-                changedPosition = True
-            newArrangement[i] = temp_tensor
-    return newArrangement
