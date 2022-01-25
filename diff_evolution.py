@@ -125,7 +125,7 @@ def crossover(mutated_individual, individual, CR, ORDER):
 
 
 def differential_evolution(population_size, bounds, iter_number, F, CR, P, ORDER, containers, storehouse):
-    storehouse = Tensor(storehouse, [0, 0, 0], 3)
+    storehouse = Tensor(storehouse, [0, 0, 0], ORDER)
     # Initialise population
     population = getPopulation(containers, bounds, population_size, ORDER)
     # Evaluate initial population
