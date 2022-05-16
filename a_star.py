@@ -1,5 +1,3 @@
-import random
-
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -11,9 +9,8 @@ class Node():
         self.f = 0
 
 
-def astarforpositions(containers_list, containers, storehouse):
-    #Algorytm A* czy dany kontener możemy umieścić w magazynie - TODOO
-    #Na ten czas zastąpiony - czy nie przekroczymy pojemności magazynu
+def runHeuristics(containers_list, containers, storehouse):
+    # Funkcja sprawdzająca pojemność zajętą przez kontenery
     storehouse_volume = storehouse[0]*storehouse[1]*storehouse[2]
     actual_volume = 0
     c_volume = []
@@ -89,10 +86,9 @@ def h(containers_list, containers, storehouse):
     return num_containers
 
 
-def astar( start, end,  containers, storehouse):
+def astar(start, containers, storehouse):
 
     first_node = Node( start)
-    all_c_node = Node( end)
 
     open_list = []
     closed_list = []
@@ -100,11 +96,10 @@ def astar( start, end,  containers, storehouse):
     open_list.append(first_node)
 
     while len(open_list) > 0:
-
         current_node = open_list[0]
         current_index = 0
         for index, item in enumerate(open_list):
-            #BIERZEMY O NAJWIĘKSZEJ FUNKCJI F - CZYLI MAX =1
+            #wybieranie z listy węzła o max f
             if item.f > current_node.f:
                 current_node = item
                 current_index = index
@@ -112,10 +107,7 @@ def astar( start, end,  containers, storehouse):
         open_list.pop(current_index)
         closed_list.append(current_node)
 
-        #Przypadek - wszytskie kontenery możemy umieścić w magazynie - przerywamy
-        if current_node.position == all_c_node.position:
-            return current_node.position # Return POSITIONS
-
+        # obliczanie kombinacji dodania 1 kontenera
         neighbours = get_neighbours(current_node.position)
 
         for neighbour_with_index in neighbours:
@@ -132,14 +124,15 @@ def astar( start, end,  containers, storehouse):
                 if neighbour.position == open_n.position:
                     add = False
             if add:
-                # Create the f, g, and h values
+                # Obliczenie funkcji g h i f
                 neighbour.g = g(neighbour.position)
                 neighbour.h = h(neighbour.position, containers, storehouse)
                 neighbour.f = neighbour.g + neighbour.h
 
                 
-                # Child cannot exist - put another a* algorithm
-                possible_arrangement = astarforpositions(neighbour.position, containers, storehouse)
+                # Sprawdzenie pojemności oraz możliwości włożenia kolejnego kontenera
+                possible_arrangement = runHeuristics(neighbour.position, containers, storehouse)
+                # jeśli pojemność zostałą przekroczona ustawiamy dany kontener na wartość 0 - kontener nie zostaje wpakowany do magazynu
                 if not possible_arrangement:
                     neighbour.position[neighbour_with_index[1]] = 0
                     neighbour.g = g(neighbour.position)
@@ -152,51 +145,12 @@ def astar( start, end,  containers, storehouse):
                             add = False
                 if add:
                     open_list.append(neighbour)
-    max_volume = 0
-    max_volume_position = start
-    # for i in range(len(closed_list)):
-    #     print(f"{i} - {closed_list[i].position} ,g- {closed_list[i].g}, h -{closed_list[i].h}, f-{closed_list[i].f}")
-    for node in closed_list:
-        if node.g > max_volume:
-            #znalezeinie max ilości kontenerów dla pełnego wektora
-            whole_arr_check = 0
-            if "?" in node.position:
-                whole_arr_check = -1
-            if whole_arr_check == 0:
-                max_volume = node.g
-                max_volume_position = node.position
-    return max_volume_position
 
+    return closed_list
 
+# węzeł startowy
 def get_list(containers):
     containers_list = []
     for i in range(len(containers)):
         containers_list.append('?')
     return containers_list
-
-def get_list_end(containers):
-    containers_list = []
-    for i in range(len(containers)):
-        containers_list.append(1)
-    return containers_list
-
-def main():
-
-    storehouse = [2, 5, 3]
-    # storehouse = [10,10,10]
-    containers = [[2, 4, 3], [7, 4, 5], [2, 1, 3], [1,1,1], [1,1,1], [1,1,2],[1,2,2], [2,3,1], [2,2,2], [2,1,2], [3,1,1]]
-    
-    start = get_list(containers)
-    end = get_list_end(containers)
-
-    path = astar( start, end, containers, storehouse)
-    print(path)
-
-    c_volume = []
-    for i in containers:
-        c_volume.append(i[0]*i[1]*i[2])
-    print(c_volume)
-
-
-if __name__ == '__main__':
-    main()
